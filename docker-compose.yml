@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    ports:
+      - "${POSTGRES_LOCAL_PORT}:5432"
+  pg_proxy:
+    image: ghcr.io/neondatabase/wsproxy:latest
+    environment:
+      APPEND_PORT: "postgres:5432"
+      ALLOW_ADDR_REGEX: ".*"
+      LOG_TRAFFIC: "true"
+    ports:
+      # Expose the WebSocket proxy port to the host machine,
+      # this is where @vercel/postgres will connect
+      - "${POSTGRES_LOCAL_WS_PORT}:80"
+    depends_on:
+      - postgres

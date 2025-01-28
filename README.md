@@ -2,35 +2,73 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Setup the env
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+cp ./.env.example ./.env
+cp ./.env.test.example ./.env.test
+```
+
+Make sure the database is running
+
+```bash
+docker-compose up -d
+```
+
+### Development
+
+Initialize the database
+
+```bash
+pnpm db:reset
+```
+
+Run the development server
+
+```bash
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NODE_ENV=test pnpm db:reset
+```
 
-## Learn More
+Run the tests
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm test
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# just db tests
+pnpm test:db
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# just browser tests
+pnpm test:browser
+# or with the browser open
+pnpm test:browser:headed
+```
 
-## Deploy on Vercel
+### Database Migrations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Generate a migration from the schema
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm db:generate
+```
+
+Migrate the database
+
+```bash
+# in dev
+pnpm db:migrate
+
+# in test
+NODE_ENV=test pnpm db:migrate
+```
+
+## Issues
+
+You must be using `"@neondatabase/serverless": "^0.9.5",`. Updating to latest breaks the local setup described here https://vercel.com/docs/storage/vercel-postgres/local-development

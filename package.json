@@ -4,24 +4,54 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm db:migrate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "HEADLESS=1 vitest",
+    "test:headed": "vitest",
+    "test:db": "vitest --project db",
+    "test:browser": "HEADLESS=1 vitest --project browser",
+    "test:browser:headed": "vitest --project browser",
+    "db:create": "POSTGRES_DATABASE_OVERRIDE=postgres tsx ./src/lib/db/scripts/create",
+    "db:drop": "POSTGRES_DATABASE_OVERRIDE=postgres tsx ./src/lib/db/scripts/drop",
+    "//": "https://www.answeroverflow.com/m/1266883882985328690",
+    "db:generate": "DOTENV_CONFIG_PATH=/dev/null drizzle-kit generate",
+    "db:migrate": "DOTENV_CONFIG_PATH=/dev/null drizzle-kit migrate",
+    "db:reset": "pnpm db:drop && pnpm db:create && pnpm db:migrate"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.4.2",
+    "@neondatabase/serverless": "^0.9.5",
+    "@next/env": "^15.1.6",
+    "@t3-oss/env-nextjs": "^0.12.0",
+    "@vercel/postgres": "^0.10.0",
+    "drizzle-orm": "^0.38.4",
+    "drizzle-zod": "^0.6.1",
+    "hono": "^4.6.19",
+    "next": "15.1.6",
+    "postgres": "^3.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.1.6"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@faker-js/faker": "^9.4.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/browser": "^3.0.4",
+    "drizzle-kit": "^0.30.2",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
-    "@eslint/eslintrc": "^3"
+    "eslint-plugin-import": "^2.31.0",
+    "playwright": "^1.50.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5",
+    "utility-types": "^3.11.0",
+    "vitest": "^3.0.4"
   }
 }
