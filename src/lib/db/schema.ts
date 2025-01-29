@@ -1,5 +1,12 @@
 import { Table } from "drizzle-orm";
-import { pgTableCreator, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgTableCreator,
+  text,
+  timestamp,
+  uuid,
+  vector,
+} from "drizzle-orm/pg-core";
 import {
   createInsertSchema,
   createSelectSchema,
@@ -16,14 +23,28 @@ const createZodSchemas = <TTable extends Table>(table: TTable) => {
 
 const pgTable = pgTableCreator((name) => `vercel_ai_demo_${name}`);
 
-export const things = pgTable("things", {
-  id: uuid().primaryKey().defaultRandom(),
-  createdAt: timestamp({ mode: "date", precision: 3 })
-    .notNull()
-    .$default(() => new Date()),
-  updatedAt: timestamp({ mode: "date", precision: 3 })
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const testDescriptions = pgTable(
+  "test_descriptions",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    filename: text().notNull(),
+    sourceText: text().notNull(),
+    formattedText: text().notNull(),
+    embedding: vector("embedding", { dimensions: 1536 }).notNull(),
+    processId: uuid().notNull(),
+    createdAt: timestamp({ mode: "date", precision: 3 })
+      .notNull()
+      .$default(() => new Date()),
+    updatedAt: timestamp({ mode: "date", precision: 3 })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    embeddingIndex: index("embeddingIndex").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops")
+    ),
+  })
+);
 
-export const zodThing = createZodSchemas(things);
+export const zodTestDescriptions = createZodSchemas(testDescriptions);
