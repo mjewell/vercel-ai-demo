@@ -17,7 +17,9 @@
     "//": "https://www.answeroverflow.com/m/1266883882985328690",
     "db:generate": "DOTENV_CONFIG_PATH=/dev/null drizzle-kit generate",
     "db:migrate": "DOTENV_CONFIG_PATH=/dev/null drizzle-kit migrate",
-    "db:reset": "pnpm db:drop && pnpm db:create && pnpm db:migrate"
+    "db:reset": "pnpm db:drop && pnpm db:create && pnpm db:migrate",
+    "test-info:generate": "pnpm run test list --json=./tmp/test-list.json",
+    "test-info:upload": "tsx test-list-upload.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.2",
