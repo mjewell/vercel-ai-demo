@@ -22,6 +22,7 @@ export const env = createEnv({
     POSTGRES_URL: z.string(),
     LOG_QUERIES: z.string().transform(stringToBoolean).default("false"),
     HEADLESS: z.string().transform(stringToBoolean).default("false"),
+    OPENAI_API_KEY: z.string(),
   },
   client: {
     NEXT_PUBLIC_ENV: z
