@@ -8,8 +8,9 @@ import { and, cosineDistance, desc, eq, gt, not, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const embeddingModel = openai.embedding("text-embedding-ada-002");
+const languageModel = openai("gpt-4o");
 
-export const processTests = createService({
+export const process = createService({
   params: z.object({
     tests: z.array(
       z.object({
@@ -89,7 +90,7 @@ export const processTests = createService({
   },
 });
 
-export const similarTests = createService({
+export const similar = createService({
   params: z.object({
     userQuery: z.string(),
   }),
@@ -121,10 +122,10 @@ export const answer = createService({
     userQuery: z.string(),
   }),
   handler: async ({ userQuery }) => {
-    const similarRows = await similarTests({ userQuery });
+    const similarRows = await similar({ userQuery });
 
     const result = await generateText({
-      model: openai("gpt-4o"),
+      model: languageModel,
       prompt: userQuery,
       system: `
         You are a helpful assistant that tells the user what behaviour might be supported by our code based on a list of test descriptions.
