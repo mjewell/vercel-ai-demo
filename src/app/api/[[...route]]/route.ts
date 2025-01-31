@@ -26,5 +26,27 @@ app.post(
   }
 );
 
+app.get(
+  "/test-descriptions/similar",
+  zValidator("query", TestDescriptionsService.similarTests.params),
+  async (c) => {
+    const { userQuery } = c.req.valid("query");
+    const result = await TestDescriptionsService.similarTests({ userQuery });
+    return c.json(result);
+  }
+);
+
+app.get(
+  "/test-descriptions/answer",
+  zValidator("query", TestDescriptionsService.answer.params),
+  async (c) => {
+    const { userQuery } = c.req.valid("query");
+    const result = await TestDescriptionsService.answer({
+      userQuery,
+    });
+    return c.json(result);
+  }
+);
+
 export const GET = handle(app);
 export const POST = handle(app);
