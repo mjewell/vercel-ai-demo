@@ -9,4 +9,4 @@ CREATE TABLE "vercel_ai_demo_test_descriptions" (
 	"updated_at" timestamp (3) NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX "embeddingIndex" ON "vercel_ai_demo_test_descriptions" USING hnsw ("embedding" vector_cosine_ops);
+CREATE INDEX "testDescriptionsEmbeddingIndex" ON "vercel_ai_demo_test_descriptions" USING hnsw ("embedding" vector_cosine_ops);

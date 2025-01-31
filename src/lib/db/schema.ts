@@ -23,6 +23,30 @@ const createZodSchemas = <TTable extends Table>(table: TTable) => {
 
 const pgTable = pgTableCreator((name) => `vercel_ai_demo_${name}`);
 
+export const facts = pgTable(
+  "facts",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    text: text().notNull(),
+    embedding: vector("embedding", { dimensions: 1 }).notNull(),
+    processId: uuid().notNull(),
+    createdAt: timestamp({ mode: "date", precision: 3 })
+      .notNull()
+      .$default(() => new Date()),
+    updatedAt: timestamp({ mode: "date", precision: 3 })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    embeddingIndex: index("factsEmbeddingIndex").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops")
+    ),
+  })
+);
+
+export const zodFacts = createZodSchemas(facts);
+
 export const testDescriptions = pgTable(
   "test_descriptions",
   {
@@ -40,7 +64,7 @@ export const testDescriptions = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => ({
-    embeddingIndex: index("embeddingIndex").using(
+    embeddingIndex: index("testDescriptionsEmbeddingIndex").using(
       "hnsw",
       table.embedding.op("vector_cosine_ops")
     ),

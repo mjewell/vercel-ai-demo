@@ -1,9 +1,76 @@
 {
-  "id": "dad6869e-295a-44e5-855d-3b0fdb0ae76b",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "362272db-23c2-429b-a912-9eacec82d078",
+  "prevId": "dad6869e-295a-44e5-855d-3b0fdb0ae76b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.vercel_ai_demo_facts": {
+      "name": "vercel_ai_demo_facts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "embedding": {
+          "name": "embedding",
+          "type": "vector(1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "process_id": {
+          "name": "process_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp (3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (3)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "factsEmbeddingIndex": {
+          "name": "factsEmbeddingIndex",
+          "columns": [
+            {
+              "expression": "embedding",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "vector_cosine_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "hnsw",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.vercel_ai_demo_test_descriptions": {
       "name": "vercel_ai_demo_test_descriptions",
       "schema": "",
