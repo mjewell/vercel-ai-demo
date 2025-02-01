@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore-error -- this file is generated and might not exist yet
-import tests from "./tmp/test-list.json";
+import tests from "../tmp/test-list.json";
 
 async function upload() {
   // @ts-ignore-error -- this file is generated and might not exist yet

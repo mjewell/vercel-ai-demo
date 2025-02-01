@@ -18,9 +18,9 @@
     "db:generate": "DOTENV_CONFIG_PATH=/dev/null drizzle-kit generate",
     "db:migrate": "DOTENV_CONFIG_PATH=/dev/null drizzle-kit migrate",
     "db:reset": "pnpm db:drop && pnpm db:create && pnpm db:migrate",
-    "facts:upload": "tsx facts-upload.ts",
+    "facts:upload": "tsx ./scripts/facts-upload.ts",
     "test-info:generate": "pnpm run test list --json=./tmp/test-list.json",
-    "test-info:upload": "tsx test-list-upload.ts"
+    "test-info:upload": "tsx ./scripts/test-list-upload.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.1.5",

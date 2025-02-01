@@ -1,5 +1,6 @@
 import { dbTxnMiddleware } from "@/lib/db/txn-middleware";
 import * as FactsService from "@/services/facts";
+import { formatResponse } from "@/utils/format";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
@@ -22,7 +23,7 @@ app.get(
   async (c) => {
     const { userQuery } = c.req.valid("query");
     const result = await FactsService.similar({ userQuery });
-    return c.json(result);
+    return c.json(formatResponse(result));
   }
 );
 
@@ -32,6 +33,6 @@ app.get(
   async (c) => {
     const { userQuery } = c.req.valid("query");
     const result = await FactsService.answer({ userQuery });
-    return c.json(result);
+    return c.json(formatResponse(result));
   }
 );

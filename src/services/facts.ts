@@ -84,15 +84,18 @@ export const similar = createService({
       userQueryEmbedding
     )})`;
 
-    return db
+    const similarRows = await db
       .select({
         text: schema.facts.text,
+        embedding: schema.facts.embedding,
         similarity,
       })
       .from(schema.facts)
       .where(gt(similarity, 0.5))
       .orderBy(desc(similarity))
       .limit(5);
+
+    return { userQueryEmbedding, similarRows };
   },
 });
 
@@ -101,7 +104,7 @@ export const answer = createService({
     userQuery: z.string(),
   }),
   handler: async ({ userQuery }) => {
-    const similarRows = await similar({ userQuery });
+    const { userQueryEmbedding, similarRows } = await similar({ userQuery });
 
     const result = await generateText({
       model: languageModel,
@@ -127,6 +130,10 @@ export const answer = createService({
     });
 
     return {
+      userQuery: {
+        text: userQuery,
+        embedding: userQueryEmbedding,
+      },
       similarRows,
       result,
     };
