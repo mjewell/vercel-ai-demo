@@ -23,13 +23,16 @@ async function upload() {
     "Octopuses have three hearts, and their blood is blue due to copper-based hemocyanin.",
   ];
 
-  const res = await fetch("http://localhost:3000/api/facts", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(facts),
-  });
+  const res = await fetch(
+    `http://localhost:${process.env.PORT || 3000}/api/facts`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(facts),
+    }
+  );
 
   const data = await res.json();
   console.log(data);

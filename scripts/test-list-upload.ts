@@ -11,13 +11,16 @@ async function upload() {
     };
   });
 
-  const res = await fetch("http://localhost:3000/api/test-descriptions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(normalizedTests),
-  });
+  const res = await fetch(
+    `http://localhost:${process.env.PORT || 3000}/api/test-descriptions`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(normalizedTests),
+    }
+  );
 
   const data = await res.json();
   console.log(data);
