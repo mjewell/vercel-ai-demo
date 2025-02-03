@@ -23,6 +23,7 @@ export const env = createEnv({
     LOG_QUERIES: z.string().transform(stringToBoolean).default("false"),
     HEADLESS: z.string().transform(stringToBoolean).default("false"),
     OPENAI_API_KEY: z.string(),
+    PORT: z.coerce.number().optional().default(3000),
   },
   client: {
     NEXT_PUBLIC_ENV: z

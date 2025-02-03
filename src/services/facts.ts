@@ -5,7 +5,17 @@ import { createService } from "@/lib/services/create-service";
 import { dogModel } from "@/utils/embedding/dog";
 import { concatGpt } from "@/utils/llm/concatGpt";
 import { embed, embedMany, generateText } from "ai";
-import { cosineDistance, desc, eq, gt, not, sql } from "drizzle-orm";
+import {
+  cosineDistance,
+  desc,
+  eq,
+  gt,
+  inArray,
+  not,
+  or,
+  sql,
+} from "drizzle-orm";
+import { chunk } from "remeda";
 import { z } from "zod";
 
 const embeddingModel = dogModel;
@@ -19,41 +29,54 @@ export const process = createService({
     const { db } = getContext();
 
     const newProcessId = crypto.randomUUID();
+    const matchedIds: string[] = [];
     const unmatchedRows: typeof facts = [];
 
-    // mark existing rows so they don't get deleted
-    for (const fact of facts) {
-      const [existing] = await db
+    const batches = chunk(facts, 5);
+
+    for (const batch of batches) {
+      const existing = await db
         .select()
         .from(schema.facts)
-        .where(eq(schema.facts.text, fact))
-        .limit(1);
+        .where(or(...batch.map((fact) => eq(schema.facts.text, fact))));
 
-      if (existing) {
-        await db
-          .update(schema.facts)
-          .set({ processId: newProcessId })
-          .where(eq(schema.facts.id, existing.id));
-      } else {
-        unmatchedRows.push(fact);
+      for (const fact of batch) {
+        const match = existing.find((e) => e.text === fact);
+        if (match) {
+          matchedIds.push(match.id);
+        } else {
+          unmatchedRows.push(fact);
+        }
       }
     }
 
-    if (unmatchedRows.length !== 0) {
-      // generate embeddings for new rows
-      const { embeddings } = await embedMany({
-        model: embeddingModel,
-        values: unmatchedRows,
-      });
+    if (matchedIds.length !== 0) {
+      // mark existing rows so they don't get deleted
+      await db
+        .update(schema.facts)
+        .set({ processId: newProcessId })
+        .where(inArray(schema.facts.id, matchedIds));
+    }
 
-      // insert new rows
-      await db.insert(schema.facts).values(
-        embeddings.map((embedding, i) => ({
-          text: unmatchedRows[i],
-          embedding,
-          processId: newProcessId,
-        }))
-      );
+    const unmatchedBatches = chunk(unmatchedRows, 5);
+
+    if (unmatchedRows.length !== 0) {
+      for (const batch of unmatchedBatches) {
+        // generate embeddings for new rows
+        const { embeddings } = await embedMany({
+          model: embeddingModel,
+          values: batch,
+        });
+
+        // insert new rows
+        await db.insert(schema.facts).values(
+          embeddings.map((embedding, i) => ({
+            text: batch[i],
+            embedding,
+            processId: newProcessId,
+          }))
+        );
+      }
     }
 
     // delete rows that no longer exist
@@ -63,7 +86,7 @@ export const process = createService({
 
     return {
       created: unmatchedRows.length,
-      updated: facts.length - unmatchedRows.length,
+      updated: matchedIds.length,
       deleted: deleteResult.rowCount ?? 0,
     };
   },

@@ -4,7 +4,18 @@ import { getContext } from "@/lib/services/context";
 import { createService } from "@/lib/services/create-service";
 import { openai } from "@ai-sdk/openai";
 import { embed, embedMany, generateText } from "ai";
-import { and, cosineDistance, desc, eq, gt, not, sql } from "drizzle-orm";
+import {
+  and,
+  cosineDistance,
+  desc,
+  eq,
+  gt,
+  inArray,
+  not,
+  or,
+  sql,
+} from "drizzle-orm";
+import { chunk } from "remeda";
 import { z } from "zod";
 
 const embeddingModel = openai.embedding("text-embedding-ada-002");
@@ -35,46 +46,65 @@ export const process = createService({
     });
 
     const newProcessId = crypto.randomUUID();
+    const matchedIds: string[] = [];
     const unmatchedRows: typeof parsed = [];
 
-    // mark existing rows so they don't get deleted
-    for (const p of parsed) {
-      const [existing] = await db
+    const batches = chunk(parsed, 100);
+
+    for (const batch of batches) {
+      const existing = await db
         .select()
         .from(schema.testDescriptions)
         .where(
-          and(
-            eq(schema.testDescriptions.filename, p.filename),
-            eq(schema.testDescriptions.sourceText, p.sourceText)
+          or(
+            ...batch.map((p) =>
+              and(
+                eq(schema.testDescriptions.filename, p.filename),
+                eq(schema.testDescriptions.sourceText, p.sourceText)
+              )
+            )
           )
-        )
-        .limit(1);
+        );
 
-      if (existing) {
-        await db
-          .update(schema.testDescriptions)
-          .set({ processId: newProcessId })
-          .where(eq(schema.testDescriptions.id, existing.id));
-      } else {
-        unmatchedRows.push(p);
+      for (const p of batch) {
+        const match = existing.find(
+          (e) => e.filename === p.filename && e.sourceText === p.sourceText
+        );
+        if (match) {
+          matchedIds.push(match.id);
+        } else {
+          unmatchedRows.push(p);
+        }
       }
     }
 
-    if (unmatchedRows.length !== 0) {
-      // generate embeddings for new rows
-      const { embeddings } = await embedMany({
-        model: embeddingModel,
-        values: unmatchedRows.map((r) => r.formattedText),
-      });
+    if (matchedIds.length !== 0) {
+      // mark existing rows so they don't get deleted
+      await db
+        .update(schema.testDescriptions)
+        .set({ processId: newProcessId })
+        .where(inArray(schema.testDescriptions.id, matchedIds));
+    }
 
-      // insert new rows
-      await db.insert(schema.testDescriptions).values(
-        embeddings.map((embedding, i) => ({
-          ...unmatchedRows[i],
-          embedding,
-          processId: newProcessId,
-        }))
-      );
+    const unmatchedBatches = chunk(unmatchedRows, 100);
+
+    if (unmatchedRows.length !== 0) {
+      for (const batch of unmatchedBatches) {
+        // generate embeddings for new rows
+        const { embeddings } = await embedMany({
+          model: embeddingModel,
+          values: batch.map((r) => r.formattedText),
+        });
+
+        // insert new rows
+        await db.insert(schema.testDescriptions).values(
+          embeddings.map((embedding, i) => ({
+            ...batch[i],
+            embedding,
+            processId: newProcessId,
+          }))
+        );
+      }
     }
 
     // delete rows that no longer exist
@@ -84,7 +114,7 @@ export const process = createService({
 
     return {
       created: unmatchedRows.length,
-      updated: parsed.length - unmatchedRows.length,
+      updated: matchedIds.length,
       deleted: deleteResult.rowCount ?? 0,
     };
   },

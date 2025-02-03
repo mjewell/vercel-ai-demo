@@ -1,3 +1,6 @@
+import "@/lib/env/load";
+import { env } from "@/lib/env";
+
 async function upload() {
   const facts = [
     "Dogs have about 300 million scent receptors in their noses, compared to about 5 million in humans.",
@@ -23,16 +26,13 @@ async function upload() {
     "Octopuses have three hearts, and their blood is blue due to copper-based hemocyanin.",
   ];
 
-  const res = await fetch(
-    `http://localhost:${process.env.PORT || 3000}/api/facts`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(facts),
-    }
-  );
+  const res = await fetch(`http://localhost:${env.PORT}/api/facts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(facts),
+  });
 
   const data = await res.json();
   console.log(data);
